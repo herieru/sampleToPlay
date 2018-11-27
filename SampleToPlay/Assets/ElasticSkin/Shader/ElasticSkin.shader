@@ -10,8 +10,8 @@ Shader "Unlit/ElasticSkin"
 		_SkinNormalMap("Normal map",2D) = "bump"{}
 		//圧力
 		_PressPower("PressPower",FLOAT) = 0
-		//押している位置
-		_PressScreenPos("TouchScreenPos",Vector)=(0,0,0,0)
+		//押している位置 ()
+		_PressMeshPos("TouchScreenPos",Vector)=(0.5,0.5,0,0)
 	}
 	SubShader
 	{
@@ -48,9 +48,10 @@ Shader "Unlit/ElasticSkin"
 			sampler2D _SkinNormalMap;
 			//圧力
 			float _PressPower;
-			//スクリーン座標化の位置
-			float4 _PressScreenPos;
+			//メッシュでの抑えた位置
+			float4 _PressMeshPos;
 
+			//なんかよくわからんけど必要
 			float4 _MainTex_ST;
 			
 			v2f vert (appdata v)
