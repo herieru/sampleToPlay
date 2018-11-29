@@ -10,7 +10,7 @@ Shader "Unlit/ElasticSkin"
 		_SkinNormalMap("Normal map",2D) = "bump"{}
 		//圧力
 		_PressPower("PressPower",FLOAT) = 0
-		//押している位置 ()
+		//押している位置 (最後の方になったら正式に使用する。)
 		_PressMeshPos("TouchScreenPos",Vector)=(0.5,0.5,0,0)
 	}
 	SubShader
@@ -38,7 +38,6 @@ Shader "Unlit/ElasticSkin"
 			struct v2f
 			{
 				float2 uv : TEXCOORD0;			//テクスチャ座標
-				UNITY_FOG_COORDS(1)
 				float4 vertex : SV_POSITION;	//入力された、値の位置
 			};
 
@@ -57,18 +56,28 @@ Shader "Unlit/ElasticSkin"
 			v2f vert (appdata v)
 			{
 				v2f o;
-				o.vertex = UnityObjectToClipPos(v.vertex);
-				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-				UNITY_TRANSFER_FOG(o,o.vertex);
+				
+				o.uv = v.uv;//TRANSFORM_TEX(v.uv, _MainTex);
+				float2 _pres_pos_uv = float2(_PressMeshPos.x, _PressMeshPos.y);
+				float _distance = distance(_pres_pos_uv, o.uv);
+				float _is_dis = sin(_distance);
+				//v.vertex.y = v.vertex.y + _is_dis;
+
+				//v.vertex = UnityObjectToClipPos(v.vertex);
+				//o.vertex = v.vertex + float4(0,_is_dis,0,0);
+				float amp = 0.5 * sin(_Time * 100 + v.vertex.x * 100);
+				v.vertex.xyz = float3(v.vertex.x, v.vertex.y + amp, v.vertex.z);
+				o.vertex =  UnityObjectToClipPos(v.vertex);
 				return o;
 			}
 			
+			//サーフェスシェーダー
 			fixed4 frag (v2f i) : SV_Target
 			{
 				// sample the texture
 				fixed4 col = tex2D(_SkinTex, i.uv);
-				// apply fog
-				UNITY_APPLY_FOG(i.fogCoord, col);
+				float2 _pres_pos_uv = float2(0.0f ,0.0f);
+				col = fixed4(distance(i.uv,_pres_pos_uv), 0, 0, 1);
 				return col;
 			}
 			ENDCG
