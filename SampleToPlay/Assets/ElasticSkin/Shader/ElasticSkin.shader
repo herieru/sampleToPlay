@@ -39,8 +39,11 @@ Shader "Unlit/ElasticSkin"
 
 			struct v2f
 			{
+
 				float2 uv : TEXCOORD0;			//テクスチャ座標
 				float4 vertex : SV_POSITION;	//入力された、値の位置
+				float4 normal:NORMAL;			//法線の方向　圧力を中心にベクトルを変形させる
+
 			};
 
 			///肌に当たるテクスチャ
@@ -65,17 +68,25 @@ Shader "Unlit/ElasticSkin"
 				o.uv = v.uv;//TRANSFORM_TEX(v.uv, _MainTex);
 				float2 _pres_pos_uv = float2(_PressMeshPos.x, _PressMeshPos.y);
 				float _distance = distance(_pres_pos_uv, o.uv);
-				float _sin_distance = sin(_distance - 0.5f);			//sinをずらすための0.5f
+				//近いほど　受ける値を大きくする。ためのもの
+				float _inv_distance = 1 -_distance;
 
-				_sin_distance = step(_sin_distance, _PressInFrenceDistance) * _sin_distance;
+				//一定の距離内なら　１　に値を入れる
+				float _cheak_distance = step(_distance, _PressInFrenceDistance);
 				
-				v.vertex.y = v.vertex.y +(_sin_distance * 5.0f);			//高さを出すための5f
+				v.vertex.y = v.vertex.y  + (_inv_distance * _PressPower) * _cheak_distance;			//高さを出すための5f
 
 				//v.vertex = UnityObjectToClipPos(v.vertex);
 				//o.vertex = v.vertex + float4(0,_is_dis,0,0);
-				float amp = 0.5 * sin(_Time * 100 + v.vertex.x * 100);
+				
 				v.vertex.xyz = float3(v.vertex.x, v.vertex.y, v.vertex.z);
 				o.vertex =  UnityObjectToClipPos(v.vertex);
+
+
+
+				o.normal = float4(1, 1, 1, 1);
+
+
 				return o;
 			}
 			
