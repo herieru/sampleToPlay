@@ -11,7 +11,9 @@ Shader "Unlit/ElasticSkin"
 		//圧力
 		_PressPower("PressPower",FLOAT) = 0
 		//押している位置 (最後の方になったら正式に使用する。)
-		_PressMeshPos("TouchScreenPos",Vector)=(0.5,0.5,0,0)
+		_PressMeshPos("TouchScreenPos",Vector) = (0.5,0.5,0,0)
+		//押した力の影響具合を受ける距離
+		_PressInFrenceDistance("PressInfrenceDistance",Float) = 1
 	}
 	SubShader
 	{
@@ -52,6 +54,9 @@ Shader "Unlit/ElasticSkin"
 
 			//なんかよくわからんけど必要
 			float4 _MainTex_ST;
+
+			//圧力の影響を与える距離
+			float _PressInFrenceDistance;
 			
 			v2f vert (appdata v)
 			{
@@ -60,13 +65,16 @@ Shader "Unlit/ElasticSkin"
 				o.uv = v.uv;//TRANSFORM_TEX(v.uv, _MainTex);
 				float2 _pres_pos_uv = float2(_PressMeshPos.x, _PressMeshPos.y);
 				float _distance = distance(_pres_pos_uv, o.uv);
-				float _is_dis = sin(_distance);
-				//v.vertex.y = v.vertex.y + _is_dis;
+				float _sin_distance = sin(_distance - 0.5f);			//sinをずらすための0.5f
+
+				_sin_distance = step(_sin_distance, _PressInFrenceDistance) * _sin_distance;
+				
+				v.vertex.y = v.vertex.y +(_sin_distance * 5.0f);			//高さを出すための5f
 
 				//v.vertex = UnityObjectToClipPos(v.vertex);
 				//o.vertex = v.vertex + float4(0,_is_dis,0,0);
 				float amp = 0.5 * sin(_Time * 100 + v.vertex.x * 100);
-				v.vertex.xyz = float3(v.vertex.x, v.vertex.y + amp, v.vertex.z);
+				v.vertex.xyz = float3(v.vertex.x, v.vertex.y, v.vertex.z);
 				o.vertex =  UnityObjectToClipPos(v.vertex);
 				return o;
 			}
@@ -76,7 +84,7 @@ Shader "Unlit/ElasticSkin"
 			{
 				// sample the texture
 				fixed4 col = tex2D(_SkinTex, i.uv);
-				float2 _pres_pos_uv = float2(0.0f ,0.0f);
+				float2 _pres_pos_uv = float2(_PressMeshPos.x, _PressMeshPos.y);
 				col = fixed4(distance(i.uv,_pres_pos_uv), 0, 0, 1);
 				return col;
 			}
