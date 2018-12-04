@@ -14,6 +14,9 @@ Shader "Unlit/ElasticSkin"
 		_PressMeshPos("TouchScreenPos",Vector) = (0.5,0.5,0,0)
 		//押した力の影響具合を受ける距離
 		_PressInFrenceDistance("PressInfrenceDistance",Range(0.1,0.5)) = 1
+
+		//光の方角
+		_LightDir("LightDir",Vector)= (0,0,1,0)
 	}
 	SubShader
 	{
@@ -60,6 +63,9 @@ Shader "Unlit/ElasticSkin"
 
 			//圧力の影響を与える距離
 			float _PressInFrenceDistance;
+
+			//光の方角
+			float4 _LightDir;
 			
 			v2f vert (appdata v)
 			{
@@ -88,10 +94,10 @@ Shader "Unlit/ElasticSkin"
 				float2 _press_dir_2 = float2(abs(_pres_pos_uv.x - o.uv.x), abs(_pres_pos_uv.y - o.uv.y));
 				float3 _press_dir = float3(_press_dir_2.x,0, _press_dir_2.y);
 
-				//以下の＊２を距離に応じて、処理するようにする必要がある。
-				float3 _add_dir = v.normal + normalize(_press_dir) * 2;
+				//距離に応じて、処理するようにする必要がある。
+				float3 _add_dir = v.normal * _distance + normalize(_press_dir) * _inv_distance;
 				
-
+				//距離推移のベクトルを正規化したもの
 				o.normal = normalize(_add_dir);
 
 				return o;
@@ -104,8 +110,16 @@ Shader "Unlit/ElasticSkin"
 				fixed4 col = tex2D(_SkinTex, i.uv);
 				float2 _pres_pos_uv = float2(_PressMeshPos.x, _PressMeshPos.y);
 				col = fixed4(distance(i.uv,_pres_pos_uv), 0, 0, 1);
-				col = fixed4(i.normal.x,i.normal.y, 0, 1);
-				return col;
+
+				float _light_dot = dot(i.normal, float4(0,1,0,0));
+
+				//ノーマルの可視化のためのもの（色だけ）
+				//col = fixed4(i.normal.x,i.normal.y, i.normal.z, 1);
+				
+				// dotがうまくいっているかどうか
+				col = fixed4(_light_dot, 0, 0, 1);
+				
+				return col;// *_light_dot;
 			}
 			ENDCG
 		}
