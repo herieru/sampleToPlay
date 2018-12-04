@@ -89,7 +89,7 @@ Shader "Unlit/ElasticSkin"
 				float3 _press_dir = float3(_press_dir_2.x,0, _press_dir_2.y);
 
 				//以下の＊２を距離に応じて、処理するようにする必要がある。
-				float3 _add_dir = v.normal + _press_dir  * 2;
+				float3 _add_dir = v.normal + normalize(_press_dir) * 2;
 				
 
 				o.normal = normalize(_add_dir);
