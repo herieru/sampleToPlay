@@ -111,7 +111,7 @@ Shader "Unlit/ElasticSkin"
 				float2 _pres_pos_uv = float2(_PressMeshPos.x, _PressMeshPos.y);
 				col = fixed4(distance(i.uv,_pres_pos_uv), 0, 0, 1);
 
-				float _light_dot = dot(i.normal, float4(0,1,0,0));
+				float _light_dot = cross(i.normal, _LightDir);
 
 				//ノーマルの可視化のためのもの（色だけ）
 				//col = fixed4(i.normal.x,i.normal.y, i.normal.z, 1);
