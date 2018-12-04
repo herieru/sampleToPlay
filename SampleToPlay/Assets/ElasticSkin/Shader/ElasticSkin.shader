@@ -42,7 +42,7 @@ Shader "Unlit/ElasticSkin"
 
 				float2 uv : TEXCOORD0;			//テクスチャ座標
 				float4 vertex : SV_POSITION;	//入力された、値の位置
-				float3 normal:NORMAL;			//法線の方向　圧力を中心にベクトルを変形させる
+				float3 normal:NORMAL;			//法線の方向　圧力を中心にベクトルを変形させる  一時的に、float2で表現
 
 			};
 
@@ -85,11 +85,14 @@ Shader "Unlit/ElasticSkin"
 
 
 				//ノーマル計算を行う  UVの位置から方向を求める　　FIX：UVと位置情報とは違うため、注意が必要
-				float3 _press_dir = (float3)((_pres_pos_uv - o.uv),0);
-				float3 _add_dir = v.normal + _press_dir;
+				float2 _press_dir_2 = float2(abs(_pres_pos_uv.x - o.uv.x), abs(_pres_pos_uv.y - o.uv.y));
+				float3 _press_dir = float3(_press_dir_2.x,0, _press_dir_2.y);
+
+				//以下の＊２を距離に応じて、処理するようにする必要がある。
+				float3 _add_dir = v.normal + _press_dir  * 2;
 				
 
-				o.normal = _press_dir;
+				o.normal = normalize(_add_dir);
 
 				return o;
 			}
@@ -101,7 +104,7 @@ Shader "Unlit/ElasticSkin"
 				fixed4 col = tex2D(_SkinTex, i.uv);
 				float2 _pres_pos_uv = float2(_PressMeshPos.x, _PressMeshPos.y);
 				col = fixed4(distance(i.uv,_pres_pos_uv), 0, 0, 1);
-				//col = fixed4( 0,i.normal.z, 0, 1);
+				col = fixed4(i.normal.x,i.normal.y, 0, 1);
 				return col;
 			}
 			ENDCG
