@@ -95,7 +95,7 @@ Shader "Unlit/ElasticSkin"
 				float3 _press_dir = float3(_press_dir_2.x,0, _press_dir_2.y);
 
 				//距離に応じて、処理するようにする必要がある。
-				float3 _add_dir = v.normal * _distance + normalize(_press_dir) * _inv_distance;
+				float3 _add_dir = v.normal * _inv_distance + ( normalize(_press_dir * _distance) * _PressPower);
 				
 				//距離推移のベクトルを正規化したもの
 				o.normal = normalize(_add_dir);
@@ -111,13 +111,13 @@ Shader "Unlit/ElasticSkin"
 				float2 _pres_pos_uv = float2(_PressMeshPos.x, _PressMeshPos.y);
 				col = fixed4(distance(i.uv,_pres_pos_uv), 0, 0, 1);
 
-				float _light_dot = cross(i.normal, _LightDir);
+				float _light_dot = dot(_LightDir, i.normal);
 
 				//ノーマルの可視化のためのもの（色だけ）
 				//col = fixed4(i.normal.x,i.normal.y, i.normal.z, 1);
 				
 				// dotがうまくいっているかどうか
-				col = fixed4(_light_dot, 0, 0, 1);
+				col = fixed4((_light_dot), 0, 0, 1);
 				
 				return col;// *_light_dot;
 			}
