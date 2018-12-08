@@ -9,11 +9,11 @@ Shader "Unlit/ElasticSkin"
 		//ノーマルマップ
 		_SkinNormalMap("Normal map",2D) = "bump"{}
 		//圧力
-		[PowerSlider(0,1)]_PressPower("PressPower",Range(0.01,5)) = 0
+		[PowerSlider(0,1)]_PressPower("PressPower",Range(0.0,5)) = 0
 		//押している位置 (最後の方になったら正式に使用する。)
 		_PressMeshPos("TouchScreenPos",Vector) = (0.5,0.5,0,0)
 		//押した力の影響具合を受ける距離
-		_PressInFrenceDistance("PressInfrenceDistance",Range(0.1,0.5)) = 1
+		_PressInFrenceDistance("PressInfrenceDistance",Range(0.0,0.5)) = 1
 
 		//光の方角
 		_LightDir("LightDir",Vector)= (0,0,1,0)
@@ -73,30 +73,26 @@ Shader "Unlit/ElasticSkin"
 				
 				o.uv = v.uv;//TRANSFORM_TEX(v.uv, _MainTex);
 				float2 _pres_pos_uv = float2(_PressMeshPos.x, _PressMeshPos.y);
-				float _distance = distance(_pres_pos_uv, o.uv);
+				float _distance = distance(_pres_pos_uv, v.uv);
 				//近いほど　受ける値を大きくする。ためのもの
-				float _inv_distance = 1 -_distance;
+				float _inv_distance = _PressInFrenceDistance -_distance;
 
-				//一定の距離内なら　１　に値を入れる
+				//一定の距離内なら　１　に値を入れる  範囲内かの判定のためのもの
 				float _cheak_distance = step(_distance, _PressInFrenceDistance);
 				
 				//ただし現状だと、影響距離を伸ばした際に一定の範囲を超えた際にーになって変になる。
-				v.vertex.y = v.vertex.y - (_PressPower * cos(_distance * 4)) *_cheak_distance;
+				v.vertex.y = v.vertex.y - (_PressPower * _cheak_distance * min(1.05f,_inv_distance));
 
-				//v.vertex = UnityObjectToClipPos(v.vertex);
-				//o.vertex = v.vertex + float4(0,_is_dis,0,0);
-				
 				v.vertex.xyz = float3(v.vertex.x, v.vertex.y, v.vertex.z);
 				o.vertex =  UnityObjectToClipPos(v.vertex);
-
+				//----ここまでが頂点を動かすための機構
 
 				//ノーマル計算を行う  UVの位置から方向を求める　　FIX：UVと位置情報とは違うため、注意が必要
-				float2 _press_dir_2 = float2(abs(_pres_pos_uv.x - o.uv.x), abs(_pres_pos_uv.y - o.uv.y));
+				float2 _press_dir_2 = float2(_pres_pos_uv.x - o.uv.x, _pres_pos_uv.y - o.uv.y);
 				float3 _press_dir = float3(_press_dir_2.x,0, _press_dir_2.y);
 
 				//距離に応じて、処理するようにする必要がある。
-				float3 _add_dir = v.normal * _inv_distance + ( normalize(_press_dir * _distance) * _PressPower);
-				
+				float3 _add_dir = v.normal + normalize(_press_dir) *((( _inv_distance) + 0.01f));
 				//距離推移のベクトルを正規化したもの
 				o.normal = normalize(_add_dir);
 
@@ -104,22 +100,14 @@ Shader "Unlit/ElasticSkin"
 			}
 			
 			//サーフェスシェーダー
-			fixed4 frag (v2f i) : SV_Target
+			fixed4 frag (v2f _i) : SV_Target
 			{
 				// sample the texture
-				fixed4 col = tex2D(_SkinTex, i.uv);
-				float2 _pres_pos_uv = float2(_PressMeshPos.x, _PressMeshPos.y);
-				col = fixed4(distance(i.uv,_pres_pos_uv), 0, 0, 1);
-
-				float _light_dot = dot(_LightDir, i.normal);
-
-				//ノーマルの可視化のためのもの（色だけ）
-				//col = fixed4(i.normal.x,i.normal.y, i.normal.z, 1);
+				fixed4 _col = tex2D(_SkinTex, _i.uv);
+				//return col;
+				float _dot = dot(-_LightDir, _i.normal);
+				return fixed4(_dot, _dot, _dot, _dot);
 				
-				// dotがうまくいっているかどうか
-				col = fixed4((_light_dot), 0, 0, 1);
-				
-				return col;// *_light_dot;
 			}
 			ENDCG
 		}
