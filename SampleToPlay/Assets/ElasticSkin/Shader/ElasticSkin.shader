@@ -81,7 +81,7 @@ Shader "Unlit/ElasticSkin"
 				float _cheak_distance = step(_distance, _PressInFrenceDistance);
 				
 				//ただし現状だと、影響距離を伸ばした際に一定の範囲を超えた際にーになって変になる。
-				v.vertex.y = v.vertex.y - (_PressPower * _cheak_distance * min(1.05f,_inv_distance));
+				v.vertex.y = v.vertex.y - (_PressPower * _cheak_distance * max(0.05f,_inv_distance));
 
 				v.vertex.xyz = float3(v.vertex.x, v.vertex.y, v.vertex.z);
 				o.vertex =  UnityObjectToClipPos(v.vertex);

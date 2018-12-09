@@ -278,7 +278,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a8adaa0bb485d6045aae8c9f762bc157, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  skin_material: {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  skin_material: {fileID: 2100000, guid: 105330d798c449542a3fe9f10f7c2de2, type: 2}
   light: {fileID: 803912018}
 --- !u!1 &1058640479
 GameObject:
