@@ -81,7 +81,7 @@ Shader "Unlit/ElasticSkin"
 				float _cheak_distance = step(_distance, _PressInFrenceDistance);
 				
 				//ただし現状だと、影響距離を伸ばした際に一定の範囲を超えた際にーになって変になる。
-				v.vertex.y = v.vertex.y - (_PressPower * _cheak_distance * max(0.05f,_inv_distance));
+				v.vertex.y = v.vertex.y - (_PressPower * _cheak_distance * max(0.00f,_inv_distance));
 
 				v.vertex.xyz = float3(v.vertex.x, v.vertex.y, v.vertex.z);
 				o.vertex =  UnityObjectToClipPos(v.vertex);
@@ -92,7 +92,12 @@ Shader "Unlit/ElasticSkin"
 				float3 _press_dir = float3(_press_dir_2.x,0, _press_dir_2.y);
 
 				//距離に応じて、処理するようにする必要がある。
-				float3 _add_dir = v.normal + normalize(_press_dir) *((( _inv_distance) + 0.01f));
+
+				//0-1の値で出力する　Powerは５以上まで入力できるため最高を１までとして　Powerが0の場合は0にしたいため。
+				float _regulation_power = min(_PressPower, max(1, _PressPower));
+				float _raised_floor_dist = (_inv_distance + 0.01);
+				//
+				float3 _add_dir = v.normal + normalize(_press_dir) *(_raised_floor_dist* _regulation_power);
 				//距離推移のベクトルを正規化したもの
 				o.normal = normalize(_add_dir);
 
