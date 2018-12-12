@@ -47,6 +47,7 @@ public class propagatepressure : MonoBehaviour
         light_dir = light.transform.rotation * _front;
         //Debug.DrawRay(light.transform.position, light_dir);
         skin_material.SetVector("_LightDir", light_dir);
+        Debug.DrawLine(transform.position, light_dir * 3,Color.magenta);
 
 	}
 

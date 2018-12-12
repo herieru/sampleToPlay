@@ -7,7 +7,7 @@ Shader "Unlit/ElasticSkin"
 		//肌テクスチャ
 		_SkinTex ("Texture", 2D) = "white" {}
 		//ノーマルマップ
-		_SkinNormalMap("Normal map",2D) = "bump"{}
+		_SkinNormalMap("Normal map",2D) = "white"{}
 		//圧力
 		[PowerSlider(0,1)]_PressPower("PressPower",Range(0.0,5)) = 0
 		//押している位置 (最後の方になったら正式に使用する。)
@@ -52,7 +52,7 @@ Shader "Unlit/ElasticSkin"
 			///肌に当たるテクスチャ
 			sampler2D _SkinTex;
 			// 肌のノーマルマップ
-			sampler2D _SkinNormalMap;
+			Texture2D  _SkinNormalMap;
 			//圧力
 			float _PressPower;
 			//メッシュでの抑えた位置
@@ -84,6 +84,10 @@ Shader "Unlit/ElasticSkin"
 				v.vertex.y = v.vertex.y - (_PressPower * _cheak_distance * max(0.00f,_inv_distance));
 
 				v.vertex.xyz = float3(v.vertex.x, v.vertex.y, v.vertex.z);
+
+				fixed4 _n_tex = tex2D(_SkinNormalMap,v.uv);
+				v.vertex.y = v.vertex.y + float(_n_tex.y);// + float4(_n_tex.x, _n_tex.y, _n_tex.z, _n_tex.w);
+
 				o.vertex =  UnityObjectToClipPos(v.vertex);
 				//----ここまでが頂点を動かすための機構
 
@@ -111,6 +115,9 @@ Shader "Unlit/ElasticSkin"
 				fixed4 _col = tex2D(_SkinTex, _i.uv);
 				//return col;
 				float _dot = dot(-_LightDir, _i.normal);
+
+
+
 				return fixed4(_dot, _dot, _dot, _dot);
 				
 			}
