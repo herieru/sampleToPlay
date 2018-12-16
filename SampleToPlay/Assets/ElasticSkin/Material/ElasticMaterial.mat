@@ -74,15 +74,16 @@ Material:
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
-    - _PressInFrenceDistance: 0.5
+    - _PressInFrenceDistance: 0
     - _PressPower: 5
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
+    - _TexReflectionPow: 1
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _LightDir: {r: 0.2597596, g: -0.8544588, b: -0.44991702, a: 0}
-    - _PressMeshPos: {r: 0.49, g: 0.45, b: 0, a: 0}
+    - _PressMeshPos: {r: 0.84, g: 0.45, b: 0, a: 0}

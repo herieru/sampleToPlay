@@ -17,6 +17,9 @@ Shader "Unlit/ElasticSkin"
 
 		//光の方角
 		_LightDir("LightDir",Vector)= (0,0,1,0)
+
+		//反発力係数
+		_TexReflectionPow("ReflectPow",Range(0.0,1.0))=0.5
 	}
 	SubShader
 	{
@@ -52,7 +55,7 @@ Shader "Unlit/ElasticSkin"
 			///肌に当たるテクスチャ
 			sampler2D _SkinTex;
 			// 肌のノーマルマップ
-			Texture2D  _SkinNormalMap;
+			sampler2D  _SkinNormalMap;
 			//圧力
 			float _PressPower;
 			//メッシュでの抑えた位置
@@ -64,6 +67,9 @@ Shader "Unlit/ElasticSkin"
 			//圧力の影響を与える距離
 			float _PressInFrenceDistance;
 
+			//テクスチャの力の反射係数
+			float _TexReflectionPow;
+
 			//光の方角
 			float4 _LightDir;
 			
@@ -73,20 +79,30 @@ Shader "Unlit/ElasticSkin"
 				
 				o.uv = v.uv;//TRANSFORM_TEX(v.uv, _MainTex);
 				float2 _pres_pos_uv = float2(_PressMeshPos.x, _PressMeshPos.y);
-				float _distance = distance(_pres_pos_uv, v.uv);
+				float _uv_distance = distance(_pres_pos_uv, v.uv);
 				//近いほど　受ける値を大きくする。ためのもの
-				float _inv_distance = _PressInFrenceDistance -_distance;
+				float _inv_distance = max(0,min(1,_PressInFrenceDistance - _uv_distance));
 
 				//一定の距離内なら　１　に値を入れる  範囲内かの判定のためのもの
-				float _cheak_distance = step(_distance, _PressInFrenceDistance);
+				float _cheak_distance = step(_uv_distance, _PressInFrenceDistance);
+
+
+				//0-1の値で出力する　Powerは５以上まで入力できるため最高を１までとして　Powerが0の場合は0にしたいため。
+				float _regulation_power = max(0, min(1, _PressPower));
+
 				
 				//ただし現状だと、影響距離を伸ばした際に一定の範囲を超えた際にーになって変になる。
 				v.vertex.y = v.vertex.y - (_PressPower * _cheak_distance * max(0.00f,_inv_distance));
 
 				v.vertex.xyz = float3(v.vertex.x, v.vertex.y, v.vertex.z);
 
-				fixed4 _n_tex = tex2D(_SkinNormalMap,v.uv);
-				v.vertex.y = v.vertex.y + float(_n_tex.y);// + float4(_n_tex.x, _n_tex.y, _n_tex.z, _n_tex.w);
+				//テクスチャに対しての反射係数を取得する
+				float4 _ref_tex = tex2Dlod(_SkinNormalMap,float4(v.uv.x,v.uv.y,0,0));
+				_ref_tex = _ref_tex * _cheak_distance;
+				
+				//テクスチャにほぞんされている反射係数を返す
+				//
+				v.vertex.y = v.vertex.y + float(_ref_tex.w) * _TexReflectionPow  * _uv_distance  * _regulation_power * (_PressPower / 5);
 
 				o.vertex =  UnityObjectToClipPos(v.vertex);
 				//----ここまでが頂点を動かすための機構
@@ -97,13 +113,14 @@ Shader "Unlit/ElasticSkin"
 
 				//距離に応じて、処理するようにする必要がある。
 
-				//0-1の値で出力する　Powerは５以上まで入力できるため最高を１までとして　Powerが0の場合は0にしたいため。
-				float _regulation_power = min(_PressPower, max(1, _PressPower));
-				float _raised_floor_dist = (_inv_distance + 0.01);
+				
+				float _raised_floor_dist = (_inv_distance + 0.01) * step(0.01f, _PressInFrenceDistance);
 				//
-				float3 _add_dir = v.normal + normalize(_press_dir) *(_raised_floor_dist* _regulation_power);
+				float3 _add_dir = v.normal + normalize(_press_dir) *(_raised_floor_dist * _PressPower);
 				//距離推移のベクトルを正規化したもの
 				o.normal = normalize(_add_dir);
+
+
 
 				return o;
 			}
@@ -115,11 +132,11 @@ Shader "Unlit/ElasticSkin"
 				fixed4 _col = tex2D(_SkinTex, _i.uv);
 				//return col;
 				float _dot = dot(-_LightDir, _i.normal);
-
+			
 
 
 				return fixed4(_dot, _dot, _dot, _dot);
-				
+				//return _col;
 			}
 			ENDCG
 		}

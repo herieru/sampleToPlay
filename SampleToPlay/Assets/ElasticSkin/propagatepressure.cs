@@ -41,7 +41,6 @@ public class propagatepressure : MonoBehaviour
 	// Update is called once per frame
 	void Update () 
 	{
-
         Vector3 _front = Vector3.forward;
 
         light_dir = light.transform.rotation * _front;
