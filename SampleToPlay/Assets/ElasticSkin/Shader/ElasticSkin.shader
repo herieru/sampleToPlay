@@ -100,9 +100,9 @@ Shader "Unlit/ElasticSkin"
 				float4 _ref_tex = tex2Dlod(_SkinNormalMap,float4(v.uv.x,v.uv.y,0,0));
 				_ref_tex = _ref_tex * _cheak_distance;
 				
-				//テクスチャにほぞんされている反射係数を返す
-				//
-				v.vertex.y = v.vertex.y + float(_ref_tex.w) * _TexReflectionPow  * _uv_distance  * _regulation_power * (_PressPower / 5);
+				//テクスチャに保存されている反射係数を返す
+				//　Y座標に対して　反射係数　 *  その係数の適応度 * 距離（離れているほど影響度大）  * 押す力の強さ(0-1) * 
+				v.vertex.y = v.vertex.y + float(_ref_tex.w) * _TexReflectionPow  * _uv_distance  * _regulation_power * _regulation_power;
 
 				o.vertex =  UnityObjectToClipPos(v.vertex);
 				//----ここまでが頂点を動かすための機構
