@@ -6,8 +6,12 @@ Shader "Unlit/ElasticSkin"
 	{
 		//肌テクスチャ
 		_SkinTex ("Texture", 2D) = "white" {}
-		//ノーマルマップ
+		//ノーマルマップ （将来的には、方向　＋　力）
 		_SkinNormalMap("Normal map",2D) = "white"{}
+		//流体具合のデータテクスチャ 0-1 押したときに、その地点の隆起具合を色々と考える。
+		_SkinLiquidity("LiquidtyMap",2D)="white"{}
+
+
 		//圧力
 		[PowerSlider(0,1)]_PressPower("PressPower",Range(0.0,5)) = 0
 		//押している位置 (最後の方になったら正式に使用する。)
@@ -55,7 +59,10 @@ Shader "Unlit/ElasticSkin"
 			///肌に当たるテクスチャ
 			sampler2D _SkinTex;
 			// 肌のノーマルマップ
-			sampler2D  _SkinNormalMap;
+			sampler2D _SkinNormalMap;
+			// 肌の流体を表現
+			sampler2D _SkinLiquidity;
+
 			//圧力
 			float _PressPower;
 			//メッシュでの抑えた位置
@@ -90,9 +97,15 @@ Shader "Unlit/ElasticSkin"
 				//0-1の値で出力する　Powerは５以上まで入力できるため最高を１までとして　Powerが0の場合は0にしたいため。
 				float _regulation_power = max(0, min(1, _PressPower));
 
+
+				//===================ここから頂点の移動を行う
 				
 				//ただし現状だと、影響距離を伸ばした際に一定の範囲を超えた際にーになって変になる。
-				v.vertex.y = v.vertex.y - (_PressPower * _cheak_distance * max(0.00f,_inv_distance));
+				//v.vertex.y = v.vertex.y - (_PressPower * _cheak_distance * max(0.00f,_inv_distance));
+
+				float _move_power = (_PressPower * _cheak_distance * max(0.00f, _inv_distance));
+				v.vertex.xyz = v.vertex.xyz - (v.normal  * _move_power);
+
 
 				v.vertex.xyz = float3(v.vertex.x, v.vertex.y, v.vertex.z);
 
@@ -102,10 +115,13 @@ Shader "Unlit/ElasticSkin"
 				
 				//テクスチャに保存されている反射係数を返す
 				//　Y座標に対して　反射係数　 *  その係数の適応度 * 距離（離れているほど影響度大）  * 押す力の強さ(0-1) * 
-				v.vertex.y = v.vertex.y + float(_ref_tex.w) * _TexReflectionPow  * _uv_distance  * _regulation_power * _regulation_power;
+				float _ref_power = float(_ref_tex.w) * _TexReflectionPow  * _uv_distance  * _regulation_power * _regulation_power;
+				v.vertex.xyz = v.vertex.xyz + _ref_power * v.normal;
 
 				o.vertex =  UnityObjectToClipPos(v.vertex);
-				//----ここまでが頂点を動かすための機構
+
+
+				//=====ここまでが頂点を動かすための機構
 
 				//ノーマル計算を行う  UVの位置から方向を求める　　FIX：UVと位置情報とは違うため、注意が必要
 				float2 _press_dir_2 = float2(_pres_pos_uv.x - o.uv.x, _pres_pos_uv.y - o.uv.y);
@@ -119,8 +135,6 @@ Shader "Unlit/ElasticSkin"
 				float3 _add_dir = v.normal + normalize(_press_dir) *(_raised_floor_dist * _PressPower);
 				//距離推移のベクトルを正規化したもの
 				o.normal = normalize(_add_dir);
-
-
 
 				return o;
 			}
