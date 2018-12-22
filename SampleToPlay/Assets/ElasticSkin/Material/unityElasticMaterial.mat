@@ -55,7 +55,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SkinNormalMap:
-        m_Texture: {fileID: 2800000, guid: 8e2a859d6f034094e9f874c7dc1cf2f9, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SkinTex:
@@ -74,7 +74,7 @@ Material:
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
-    - _PressInFrenceDistance: 1
+    - _PressInFrenceDistance: 0.04
     - _PressPower: 0
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
@@ -86,4 +86,4 @@ Material:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _LightDir: {r: 0, g: 0, b: 1, a: 0}
-    - _PressMeshPos: {r: 0.5, g: 0.5, b: 0, a: 0}
+    - _PressMeshPos: {r: 0.67, g: 0.3, b: 0, a: 0}
